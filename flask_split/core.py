@@ -36,6 +36,9 @@ def init_app(state):
             Baidu|
             Gigabot|
             Googlebot|
+            ShowyouBot|
+            Python-urllib|
+            Googlebot|
             libwww-perl|
             lwp-trivial|
             msnbot|
