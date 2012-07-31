@@ -56,7 +56,7 @@ def init_app(state):
     def percentage(number):
         number *= 100
         if abs(number) < 10:
-            return "%.1f%%" % round(number, 1)
+            return "%.2f%%" % round(number, 2)
         else:
             return "%d%%" % round(number)
 
