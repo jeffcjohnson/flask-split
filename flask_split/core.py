@@ -38,7 +38,6 @@ def init_app(state):
             Googlebot|
             ShowyouBot|
             Python-urllib|
-            Googlebot|
             libwww-perl|
             lwp-trivial|
             msnbot|
