@@ -379,3 +379,4 @@ class TestExtensionWhenRedisNotAvailable(TestCase):
             .should_receive('execute_command')
             .and_raise(ConnectionError))
         finished('link_color')
+
