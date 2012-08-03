@@ -21,6 +21,8 @@ class TestExtension(TestCase):
             Baidu|
             Gigabot|
             Googlebot|
+            ShowyouBot|
+            Python-urllib|
             libwww-perl|
             lwp-trivial|
             msnbot|
