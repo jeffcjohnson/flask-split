@@ -145,6 +145,7 @@ class Experiment(object):
     def _get_winner(self):
         winner = self.redis.hget('experiment_winner', self.name)
         if winner:
+            winner = unicode(winner, 'utf-8')
             return Alternative(self.redis, winner, self.name)
 
     def _set_winner(self, winner_name):
@@ -238,11 +239,11 @@ class Experiment(object):
 
     @classmethod
     def load_alternatives_for(cls, redis, name):
-        return redis.lrange(name, 0, -1)
+        return [unicode(a, 'utf-8') for a in redis.lrange(name, 0, -1)]
 
     @classmethod
     def all(cls, redis):
-        return [cls.find(redis, e) for e in redis.smembers('experiments')]
+        return [cls.find(redis, unicode(e, 'utf-8')) for e in redis.smembers('experiments')]
 
     @classmethod
     def find(cls, redis, name):
