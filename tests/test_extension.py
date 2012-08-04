@@ -12,6 +12,7 @@ from redis import ConnectionError, Redis
 
 from . import TestCase
 
+idx_color = {'blue': 0, 'red': 1}
 
 class TestExtension(TestCase):
     def test_provides_defaults_for_settings(self):
@@ -66,8 +67,8 @@ class TestExtension(TestCase):
     def test_ab_test_always_returns_the_winner_if_one_is_present(self):
         experiment = Experiment.find_or_create(
             self.redis, 'link_color', 'blue', 'red')
-        experiment.winner = "orange", 2
-
+        experiment.winner = "orange"
+        experiment.winner_idx = 2
         assert ab_test('link_color', 'blue', 'red') == 'orange'
 
     def test_ab_test_allows_the_share_of_visitors_see_an_alternative(self):
@@ -107,7 +108,7 @@ class TestExtension(TestCase):
         Experiment.find_or_create(self.redis, 'link_color', 'blue', 'red')
         alternative_name = ab_test('link_color', 'blue', 'red')
 
-        assert session['split'] == {"link_color": alternative_name}
+        assert session['split'] == {"link_color": alternative_name, "link_color-idx": idx_color[alternative_name]}
         finished('link_color')
         assert session['split'] == {}
 
@@ -117,7 +118,8 @@ class TestExtension(TestCase):
         experiment.increment_version()
 
         alternative_name = ab_test('link_color', 'blue', 'red')
-        assert session['split'] == {"link_color:1": alternative_name}
+        assert session['split'] == {"link_color:1": alternative_name,
+                                    'link_color:1-idx': idx_color[alternative_name]}
 
         finished('link_color')
         assert session['split'] == {}
@@ -126,10 +128,12 @@ class TestExtension(TestCase):
         Experiment.find_or_create(self.redis, 'link_color', 'blue', 'red')
         alternative_name = ab_test('link_color', 'blue', 'red')
 
-        assert session['split'] == {"link_color": alternative_name}
+        assert session['split'] == {"link_color": alternative_name, 
+                                    'link_color-idx': idx_color[alternative_name]}
         finished('link_color', reset=False)
         assert session['split'] == {
             "link_color": alternative_name,
+            'link_color-idx': idx_color[alternative_name]
         }
         assert session['split_finished'] == set(['link_color'])
 
@@ -275,15 +279,18 @@ class TestVersionedExperiments(TestCase):
             self.redis, 'link_color', 'blue', 'red')
         alternative_name = ab_test('link_color', 'blue', 'red')
         assert experiment.version == 0
-        assert session['split'] == {'link_color': alternative_name}
+        assert session['split'] == {'link_color': alternative_name,
+                                    'link_color-idx': idx_color[alternative_name]}
 
     def test_saves_the_version_of_the_experiment_to_the_session(self):
         experiment = Experiment.find_or_create(
             self.redis, 'link_color', 'blue', 'red')
         experiment.reset()
         assert experiment.version == 1
+        idx_color = {'blue': 0, 'red': 1}
         alternative_name = ab_test('link_color', 'blue', 'red')
-        assert session['split'] == {'link_color:1': alternative_name}
+        assert session['split'] == {'link_color:1': alternative_name,
+                                    'link_color:1-idx': idx_color[alternative_name]}
 
     def test_loads_the_experiment_even_if_the_version_is_not_0(self):
         experiment = Experiment.find_or_create(
@@ -291,7 +298,8 @@ class TestVersionedExperiments(TestCase):
         experiment.reset()
         assert experiment.version == 1
         alternative_name = ab_test('link_color', 'blue', 'red')
-        assert session['split'] == {'link_color:1': alternative_name}
+        assert session['split'] == {'link_color:1': alternative_name, 
+                                    'link_color:1-idx': idx_color[alternative_name]}
         return_alternative_name = ab_test('link_color', 'blue', 'red')
         assert return_alternative_name == alternative_name
 
@@ -299,8 +307,10 @@ class TestVersionedExperiments(TestCase):
         experiment = Experiment.find_or_create(
             self.redis, 'link_color', 'blue', 'red')
         alternative_name = ab_test('link_color', 'blue', 'red')
-        assert session['split'] == {'link_color': alternative_name}
         idx_color = {'blue': 0, 'red': 1}
+        assert session['split'] == {'link_color': alternative_name,
+                                    'link_color-idx': idx_color[alternative_name]}
+
         alternative = Alternative(self.redis, alternative_name, 'link_color', idx_color[alternative_name])
         assert alternative.participant_count == 1
 
@@ -321,7 +331,10 @@ class TestVersionedExperiments(TestCase):
         experiment = Experiment.find_or_create(
             self.redis, 'link_color', 'blue', 'red')
         alternative_name = ab_test('link_color', 'blue', 'red')
-        assert session['split'] == {'link_color': alternative_name}
+        idx_color = {'blue': 0, 'red': 1}
+
+        assert session['split'] == {'link_color': alternative_name, 
+                                    'link_color-idx': idx_color[alternative_name]}
         idx_color = {'blue': 0, 'red': 1}
         alternative = Alternative(self.redis, alternative_name, 'link_color', idx_color[alternative_name])
         assert alternative.participant_count == 1
@@ -332,14 +345,17 @@ class TestVersionedExperiments(TestCase):
         assert alternative.participant_count == 0
 
         new_alternative_name = ab_test('link_color', 'blue', 'red')
-        assert session['split'] == {'link_color:1': new_alternative_name}
+        assert session['split'] == {'link_color:1': new_alternative_name, 
+                                    'link_color:1-idx': idx_color[new_alternative_name]}
 
     def test_only_counts_completion_of_users_on_the_current_version(self):
         experiment = Experiment.find_or_create(
             self.redis, 'link_color', 'blue', 'red')
         alternative_name = ab_test('link_color', 'blue', 'red')
         idx_color = {'blue': 0, 'red': 1}
-        assert session['split'] == {'link_color': alternative_name}
+        assert session['split'] == {'link_color-idx': idx_color[alternative_name],
+                                    'link_color': alternative_name}
+                                    
         alternative = Alternative(self.redis, alternative_name, 'link_color', idx_color[alternative_name])
 
         experiment.reset()

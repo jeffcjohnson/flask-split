@@ -7,7 +7,7 @@ from redis import Redis
 
 class TestCase(object):
     def setup_method(self, method):
-        self.redis = Redis()
+        self.redis = Redis(host='localhost', port=6379, db=1)
         self.redis.flushall()
         self.app = Flask(__name__)
         self.app.debug = True
@@ -34,3 +34,4 @@ def assert_redirects(response, location):
     """
     assert response.status_code in (301, 302)
     assert response.location == 'http://localhost' + location
+

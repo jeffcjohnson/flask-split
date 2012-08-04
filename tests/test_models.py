@@ -30,7 +30,7 @@ class TestAlternative(TestCase):
     def test_saves_to_redis(self):
         alternative = Alternative(self.redis, 'Basket', 'basket_text', 0)
         alternative.save()
-        assert 'basket_text:Basket' in self.redis
+        assert 'basket_text:0:Basket' in self.redis
 
     def test_increment_participation_count(self):
         experiment = Experiment(self.redis, 'basket_text', 'Basket', "Cart")
@@ -217,8 +217,8 @@ class TestExperiment(TestCase):
     def test_allow_you_to_specify_a_winner(self):
         experiment = Experiment.find_or_create(
             self.redis, 'link_color', 'blue', 'red')
-        experiment.winner = 'red', 1
-
+        experiment.winner = 'red'
+        experiment.winner_idx = 1
         experiment = Experiment.find_or_create(
             self.redis, 'link_color', 'blue', 'red')
         assert experiment.winner.name == 'red'
@@ -227,8 +227,8 @@ class TestExperiment(TestCase):
         experiment = Experiment.find_or_create(
             self.redis, 'link_color', 'blue', 'red', 'green')
         green = Alternative(self.redis, 'green', 'link_color', 2)
-        experiment.winner = 'green', 2
-
+        experiment.winner = 'green'
+        experiment.winner_idx = 2
         assert experiment.next_alternative().name == 'green'
         green.increment_participation()
 
@@ -242,8 +242,8 @@ class TestExperiment(TestCase):
         experiment = Experiment.find_or_create(
             self.redis, 'link_color', 'blue', 'red', 'green')
         green = Alternative(self.redis, 'green', 'link_color', 2)
-        experiment.winner = 'green', 2
-
+        experiment.winner = 'green'
+        experiment.winner_idx = 2
         assert experiment.next_alternative().name == 'green'
         green.increment_participation()
 
@@ -262,8 +262,8 @@ class TestExperiment(TestCase):
         experiment = Experiment.find_or_create(
             self.redis, 'link_color', 'blue', 'red', 'green')
         green = Alternative(self.redis, 'green', 'link_color', 2)
-        experiment.winner = 'green', 2
-
+        experiment.winner = 'green'
+        experiment.winner_idx = 2
         assert experiment.next_alternative().name == 'green'
         green.increment_participation()
 

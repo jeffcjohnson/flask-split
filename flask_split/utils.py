@@ -28,4 +28,5 @@ def _get_redis_connection():
     :return: an instance of :class:`redis.Connection`
     """
     url = current_app.config.get('REDIS_URL', 'redis://localhost:6379')
-    return redis.from_url(url)
+    #return redis.from_url(url)
+    return redis.Redis(host='localhost', port=6379, db=1)

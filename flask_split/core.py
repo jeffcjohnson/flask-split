@@ -89,11 +89,11 @@ def ab_test(experiment_name, *alternatives):
             if forced_alternative:
                 return forced_alternative
             _clean_old_versions(experiment)
-            if (_exclude_visitor() or
-                    _not_allowed_to_test(experiment.key)):
+            if (_exclude_visitor() or _not_allowed_to_test(experiment.key)):
                 _begin_experiment(experiment)
 
             alternative_name = _get_session().get(experiment.key)
+
             if alternative_name:
                 return alternative_name
             alternative = experiment.next_alternative()
@@ -134,6 +134,7 @@ def finished(experiment_name, reset=True):
                 alternative.increment_completion()
             if reset:
                 _get_session().pop(experiment.key, None)
+                _get_session().pop(experiment.key+'-idx', None)
                 try:
                     session['split_finished'].remove(experiment.key)
                 except KeyError:
@@ -174,7 +175,6 @@ def _exclude_visitor():
     """
     return _is_robot() or _is_ignored_ip_address()
 
-
 def _not_allowed_to_test(experiment_key):
     return (
         not current_app.config['SPLIT_ALLOW_MULTIPLE_EXPERIMENTS'] and
@@ -189,7 +189,7 @@ def _doing_other_tests(experiment_key):
     otherwise.
     """
     for key in _get_session().iterkeys():
-        if key != experiment_key:
+        if key != experiment_key and key != experiment_key+'-idx':
             return True
     return False
 
