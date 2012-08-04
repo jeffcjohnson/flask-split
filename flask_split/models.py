@@ -15,7 +15,7 @@ from random import random
 
 
 class Alternative(object):
-    def __init__(self, redis, name, experiment_name):
+    def __init__(self, redis, name, experiment_name, idx):
         self.redis = redis
         self.experiment_name = experiment_name
         if isinstance(name, tuple):
@@ -23,6 +23,7 @@ class Alternative(object):
         else:
             self.name = name
             self.weight = 1
+        self.idx = idx
 
     def _get_participant_count(self):
         return int(self.redis.hget(self.key, 'participant_count') or 0)
@@ -54,7 +55,7 @@ class Alternative(object):
 
     @property
     def is_control(self):
-        return self.experiment.control.name == self.name
+        return self.experiment.control.key == self.key
 
     @property
     def conversion_rate(self):
@@ -81,7 +82,7 @@ class Alternative(object):
 
     @property
     def key(self):
-        return '%s:%s' % (self.experiment_name, self.name)
+        return '%s:%s:%s' % (self.experiment_name, self.idx, self.name)
 
     @property
     def z_score(self):
@@ -133,10 +134,10 @@ class Experiment(object):
     def __init__(self, redis, name, *alternative_names):
         self.redis = redis
         self.name = name
-        self.alternatives = [
-            Alternative(redis, alternative, name)
-            for alternative in alternative_names
-        ]
+        self.alternatives = []
+        for idx,aname in enumerate(alternative_names):
+            self.alternatives.append(Alternative(redis, aname, name, idx))
+            
 
     @property
     def control(self):
@@ -264,8 +265,10 @@ class Experiment(object):
                 experiment.reset()
                 for alternative in experiment.alternatives:
                     alternative.delete()
+                experiment.delete()
                 experiment = cls(redis, name, *alternatives)
                 experiment.save()
+
         else:
             experiment = cls(redis, name, *alternatives)
             experiment.save()
