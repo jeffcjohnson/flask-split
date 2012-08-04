@@ -10,32 +10,32 @@ from . import TestCase
 
 class TestAlternative(TestCase):
     def test_has_name(self):
-        alternative = Alternative(self.redis, 'Basket', 'basket_text')
+        alternative = Alternative(self.redis, 'Basket', 'basket_text', 0)
         assert alternative.name == 'Basket'
 
     def test_has_default_participation_count_of_0(self):
-        alternative = Alternative(self.redis, 'Basket', 'basket_text')
+        alternative = Alternative(self.redis, 'Basket', 'basket_text', 0)
         assert alternative.participant_count == 0
 
     def test_has_default_completed_count_of_0(self):
-        alternative = Alternative(self.redis, 'Basket', 'basket_text')
+        alternative = Alternative(self.redis, 'Basket', 'basket_text', 0)
         assert alternative.completed_count == 0
 
     def test_belong_to_an_experiment(self):
         experiment = Experiment(self.redis, 'basket_text', 'Basket', 'Cart')
         experiment.save()
-        alternative = Alternative(self.redis, 'Basket', 'basket_text')
+        alternative = Alternative(self.redis, 'Basket', 'basket_text', 0)
         assert alternative.experiment.name == experiment.name
 
     def test_saves_to_redis(self):
-        alternative = Alternative(self.redis, 'Basket', 'basket_text')
+        alternative = Alternative(self.redis, 'Basket', 'basket_text', 0)
         alternative.save()
         assert 'basket_text:Basket' in self.redis
 
     def test_increment_participation_count(self):
         experiment = Experiment(self.redis, 'basket_text', 'Basket', "Cart")
         experiment.save()
-        alternative = Alternative(self.redis, 'Basket', 'basket_text')
+        alternative = Alternative(self.redis, 'Basket', 'basket_text'. 0)
         old_participant_count = alternative.participant_count
         alternative.increment_participation()
         assert alternative.participant_count == old_participant_count + 1
@@ -43,13 +43,13 @@ class TestAlternative(TestCase):
     def test_increment_completed_count(self):
         experiment = Experiment(self.redis, 'basket_text', 'Basket', "Cart")
         experiment.save()
-        alternative = Alternative(self.redis, 'Basket', 'basket_text')
+        alternative = Alternative(self.redis, 'Basket', 'basket_text'. 0)
         old_completed_count = alternative.participant_count
         alternative.increment_completion()
         assert alternative.completed_count == old_completed_count + 1
 
     def test_can_be_reset(self):
-        alternative = Alternative(self.redis, 'Basket', 'basket_text')
+        alternative = Alternative(self.redis, 'Basket', 'basket_text'. 0)
         alternative.participant_count = 10
         alternative.completed_count = 4
         alternative.reset()
@@ -59,18 +59,18 @@ class TestAlternative(TestCase):
     def test_know_if_it_is_the_control_of_an_experiment(self):
         experiment = Experiment(self.redis, 'basket_text', 'Basket', 'Cart')
         experiment.save()
-        alternative = Alternative(self.redis, 'Basket', 'basket_text')
+        alternative = Alternative(self.redis, 'Basket', 'basket_text', 0)
         assert alternative.is_control
-        alternative = Alternative(self.redis, 'Cart', 'basket_text')
+        alternative = Alternative(self.redis, 'Cart', 'basket_text', 1)
         assert not alternative.is_control
 
     def test_conversion_rate_is_0_if_there_are_no_conversions(self):
-        alternative = Alternative(self.redis, 'Basket', 'basket_text')
+        alternative = Alternative(self.redis, 'Basket', 'basket_text', 0)
         assert alternative.completed_count == 0
         assert alternative.conversion_rate == 0
 
     def test_conversion_rate_does_something(self):
-        alternative = Alternative(self.redis, 'Basket', 'basket_text')
+        alternative = Alternative(self.redis, 'Basket', 'basket_text', 0)
         alternative.participant_count = 10
         alternative.completed_count = 4
         assert alternative.conversion_rate == 0.4
@@ -83,24 +83,24 @@ class TestAlternative(TestCase):
     def test_z_score_is_none_when_the_control_has_no_participations(self):
         experiment = Experiment(self.redis, 'link_color', 'blue', 'red')
         experiment.save()
-        alternative = Alternative(self.redis, 'red', 'link_color')
+        alternative = Alternative(self.redis, 'red', 'link_color', 1)
         assert alternative.z_score is None
 
     def test_z_score_is_none_when_alternative_has_no_participations(self):
         experiment = Experiment.find_or_create(
             self.redis, 'link_color', 'blue', 'red')
         experiment.save()
-        alternative = Alternative(self.redis, 'red', 'link_color')
+        alternative = Alternative(self.redis, 'red', 'link_color', 1)
         assert alternative.z_score is None
 
     def test_z_score_when_control_and_alternative_have_perfect_conversion(self):
         experiment = Experiment.find_or_create(
             self.redis, 'link_color', 'blue', 'red')
         experiment.save()
-        control = Alternative(self.redis, 'blue', 'link_color')
+        control = Alternative(self.redis, 'blue', 'link_color', 0)
         control.completed_count = 10
         control.participant_count = 10
-        alternative = Alternative(self.redis, 'red', 'link_color')
+        alternative = Alternative(self.redis, 'red', 'link_color', 1)
         alternative.completed_count = 8
         alternative.participant_count = 8
         assert alternative.z_score is None
@@ -109,19 +109,19 @@ class TestAlternative(TestCase):
         Experiment.find_or_create(self.redis, 'Treatment',
             'Control', 'Treatment A', 'Treatment B', 'Treatment C')
 
-        control = Alternative(self.redis, 'Control', 'Treatment')
+        control = Alternative(self.redis, 'Control', 'Treatment', 0)
         control.participant_count = 182
         control.completed_count = 35
 
-        treatment_a = Alternative(self.redis, 'Treatment A', 'Treatment')
+        treatment_a = Alternative(self.redis, 'Treatment A', 'Treatment', 0)
         treatment_a.participant_count = 180
         treatment_a.completed_count = 45
 
-        treatment_b = Alternative(self.redis, 'Treatment B', 'Treatment')
+        treatment_b = Alternative(self.redis, 'Treatment B', 'Treatment', 1)
         treatment_b.participant_count = 189
         treatment_b.completed_count = 28
 
-        treatment_c = Alternative(self.redis, 'Treatment C', 'Treatment')
+        treatment_c = Alternative(self.redis, 'Treatment C', 'Treatment', 2)
         treatment_c.participant_count = 188
         treatment_c.completed_count = 61
 
@@ -226,7 +226,7 @@ class TestExperiment(TestCase):
     def test_reset_should_reset_all_alternatives(self):
         experiment = Experiment.find_or_create(
             self.redis, 'link_color', 'blue', 'red', 'green')
-        green = Alternative(self.redis, 'green', 'link_color')
+        green = Alternative(self.redis, 'green', 'link_color', 2)
         experiment.winner = 'green'
 
         assert experiment.next_alternative().name == 'green'
@@ -234,14 +234,14 @@ class TestExperiment(TestCase):
 
         experiment.reset()
 
-        reset_green = Alternative(self.redis, 'green', 'link_color')
+        reset_green = Alternative(self.redis, 'green', 'link_color', 2)
         assert reset_green.participant_count == 0
         assert reset_green.completed_count == 0
 
     def test_reset_should_reset_the_winner(self):
         experiment = Experiment.find_or_create(
             self.redis, 'link_color', 'blue', 'red', 'green')
-        green = Alternative(self.redis, 'green', 'link_color')
+        green = Alternative(self.redis, 'green', 'link_color', 2)
         experiment.winner = 'green'
 
         assert experiment.next_alternative().name == 'green'
@@ -261,7 +261,7 @@ class TestExperiment(TestCase):
     def test_next_alternative_always_returns_the_winner_if_one_exists(self):
         experiment = Experiment.find_or_create(
             self.redis, 'link_color', 'blue', 'red', 'green')
-        green = Alternative(self.redis, 'green', 'link_color')
+        green = Alternative(self.redis, 'green', 'link_color', 2)
         experiment.winner = 'green'
 
         assert experiment.next_alternative().name == 'green'
@@ -275,12 +275,12 @@ class TestExperiment(TestCase):
         experiment = Experiment(
             self.redis, 'link_color', 'blue', 'red', 'green')
         experiment.save()
-        blue = Alternative(self.redis, 'blue', 'link_color')
+        blue = Alternative(self.redis, 'blue', 'link_color', 0)
         blue.participant_count = 5
         blue.save()
         same_experiment = Experiment.find_or_create(
             self.redis, 'link_color', 'blue', 'yellow', 'orange')
         alternative_names = [a.name for a in same_experiment.alternatives]
         assert alternative_names == ['blue', 'yellow', 'orange']
-        new_blue = Alternative(self.redis, 'blue', 'link_color')
+        new_blue = Alternative(self.redis, 'blue', 'link_color', 0)
         assert new_blue.participant_count == 0

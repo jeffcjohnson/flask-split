@@ -16,8 +16,8 @@ class TestDashboard(TestCase):
     def test_reset_an_experiment(self):
         Experiment.find_or_create(self.redis, 'link_color', 'blue', 'red')
 
-        red = Alternative(self.redis, 'red', 'link_color')
-        blue = Alternative(self.redis, 'blue', 'link_color')
+        red = Alternative(self.redis, 'red', 'link_color', 1)
+        blue = Alternative(self.redis, 'blue', 'link_color', 0)
         red.participant_count = 5
         blue.participant_count = 6
 
