@@ -145,12 +145,14 @@ class Experiment(object):
 
     def _get_winner(self):
         winner = self.redis.hget('experiment_winner', self.name)
+        winner_idx = self.redis.hget('experiment_winner_idx', self.name)
         if winner:
             winner = unicode(winner, 'utf-8')
-            return Alternative(self.redis, winner, self.name)
+            return Alternative(self.redis, winner, self.name, winner_idx)
 
-    def _set_winner(self, winner_name):
+    def _set_winner(self, winner_name, winnder_idx):
         self.redis.hset('experiment_winner', self.name, winner_name)
+        self.redis.hset('experiment_winner_idx', self.name, winner_idx)
 
     winner = property(
         _get_winner,
@@ -160,6 +162,7 @@ class Experiment(object):
     def reset_winner(self):
         """Reset the winner of this experiment."""
         self.redis.hdel('experiment_winner', self.name)
+        self.redis.hdel('experiment_winner_idx', self.name)
 
     @property
     def start_time(self):

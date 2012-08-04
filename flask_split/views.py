@@ -47,9 +47,10 @@ def set_experiment_winner(experiment):
     experiment = Experiment.find(redis, experiment)
     if experiment:
         alternative_name = request.form.get('alternative')
-        alternative = Alternative(redis, alternative_name, experiment.name)
+        alternative_idx = request.form.get('alternative_idx')
+        alternative = Alternative(redis, alternative_name, experiment.name, alternative_idx)
         if alternative.name in experiment.alternative_names:
-            experiment.winner = alternative.name
+            experiment.winner = alternative.name, alternative_idx
     return redirect(url_for('.index'))
 
 

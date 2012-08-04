@@ -98,7 +98,7 @@ def ab_test(experiment_name, *alternatives):
                 return alternative_name
             alternative = experiment.next_alternative()
             alternative.increment_participation()
-            _begin_experiment(experiment, alternative.name)
+            _begin_experiment(experiment, alternative.name, alternative.idx)
             return alternative.name
     except ConnectionError:
         if not current_app.config['SPLIT_DB_FAILOVER']:
@@ -124,12 +124,13 @@ def finished(experiment_name, reset=True):
         if not experiment:
             return
         alternative_name = _get_session().get(experiment.key)
+        alternative_idx = _get_session().get(experiment.key+'-idx')
         if alternative_name:
             if 'split_finished' not in session:
                 session['split_finished'] = set()
             if experiment.key not in session['split_finished']:
                 alternative = Alternative(
-                    redis, alternative_name, experiment_name)
+                    redis, alternative_name, experiment_name, alternative_idx)
                 alternative.increment_completion()
             if reset:
                 _get_session().pop(experiment.key, None)
@@ -151,10 +152,12 @@ def _override(experiment_name, alternatives):
         return request.args.get(experiment_name)
 
 
-def _begin_experiment(experiment, alternative_name=None):
+def _begin_experiment(experiment, alternative_name=None, alternative_idx=None):
     if not alternative_name:
         alternative_name = experiment.control.name
+        alternative_idx = experiment.control.idx
     _get_session()[experiment.key] = alternative_name
+    _get_session()[experiment.key+'-idx'] = alternative_idx
     session.modified = True
 
 

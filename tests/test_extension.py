@@ -66,7 +66,7 @@ class TestExtension(TestCase):
     def test_ab_test_always_returns_the_winner_if_one_is_present(self):
         experiment = Experiment.find_or_create(
             self.redis, 'link_color', 'blue', 'red')
-        experiment.winner = "orange"
+        experiment.winner = "orange", 2
 
         assert ab_test('link_color', 'blue', 'red') == 'orange'
 

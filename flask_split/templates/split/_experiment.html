@@ -77,8 +77,9 @@
               {% endif %}
             {% else %}
               <form class="form-set-winner" action="{{ url_for('.set_experiment_winner', experiment=experiment.name) }}" method="post">
-                <input type="hidden" name="alternative" value="{{ alternative.name }}">
-                <input type="submit" value="Use this" class="btn btn-success btn-mini">
+	    <input type="hidden" name="alternative" value="{{ alternative.name }}">
+	    <input type="hidden" name="alternative_idx" value="{{ alternative.idx }}">
+	    <input type="submit" value="Use this" class="btn btn-success btn-mini">
               </form>
             {% endif %}
           </td>

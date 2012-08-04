@@ -35,7 +35,7 @@ class TestAlternative(TestCase):
     def test_increment_participation_count(self):
         experiment = Experiment(self.redis, 'basket_text', 'Basket', "Cart")
         experiment.save()
-        alternative = Alternative(self.redis, 'Basket', 'basket_text'. 0)
+        alternative = Alternative(self.redis, 'Basket', 'basket_text', 0)
         old_participant_count = alternative.participant_count
         alternative.increment_participation()
         assert alternative.participant_count == old_participant_count + 1
@@ -43,13 +43,13 @@ class TestAlternative(TestCase):
     def test_increment_completed_count(self):
         experiment = Experiment(self.redis, 'basket_text', 'Basket', "Cart")
         experiment.save()
-        alternative = Alternative(self.redis, 'Basket', 'basket_text'. 0)
+        alternative = Alternative(self.redis, 'Basket', 'basket_text', 0)
         old_completed_count = alternative.participant_count
         alternative.increment_completion()
         assert alternative.completed_count == old_completed_count + 1
 
     def test_can_be_reset(self):
-        alternative = Alternative(self.redis, 'Basket', 'basket_text'. 0)
+        alternative = Alternative(self.redis, 'Basket', 'basket_text', 0)
         alternative.participant_count = 10
         alternative.completed_count = 4
         alternative.reset()
@@ -217,7 +217,7 @@ class TestExperiment(TestCase):
     def test_allow_you_to_specify_a_winner(self):
         experiment = Experiment.find_or_create(
             self.redis, 'link_color', 'blue', 'red')
-        experiment.winner = 'red'
+        experiment.winner = 'red', 1
 
         experiment = Experiment.find_or_create(
             self.redis, 'link_color', 'blue', 'red')
@@ -227,7 +227,7 @@ class TestExperiment(TestCase):
         experiment = Experiment.find_or_create(
             self.redis, 'link_color', 'blue', 'red', 'green')
         green = Alternative(self.redis, 'green', 'link_color', 2)
-        experiment.winner = 'green'
+        experiment.winner = 'green', 2
 
         assert experiment.next_alternative().name == 'green'
         green.increment_participation()
@@ -242,7 +242,7 @@ class TestExperiment(TestCase):
         experiment = Experiment.find_or_create(
             self.redis, 'link_color', 'blue', 'red', 'green')
         green = Alternative(self.redis, 'green', 'link_color', 2)
-        experiment.winner = 'green'
+        experiment.winner = 'green', 2
 
         assert experiment.next_alternative().name == 'green'
         green.increment_participation()
@@ -262,7 +262,7 @@ class TestExperiment(TestCase):
         experiment = Experiment.find_or_create(
             self.redis, 'link_color', 'blue', 'red', 'green')
         green = Alternative(self.redis, 'green', 'link_color', 2)
-        experiment.winner = 'green'
+        experiment.winner = 'green', 2
 
         assert experiment.next_alternative().name == 'green'
         green.increment_participation()
