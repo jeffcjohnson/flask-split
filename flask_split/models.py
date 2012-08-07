@@ -89,7 +89,7 @@ class Alternative(object):
         control = self.experiment.control
         alternative = self
 
-        if control.name == alternative.name:
+        if control.name == alternative.name and control.idx == alternative.idx:
             return None
 
         cr = alternative.conversion_rate
