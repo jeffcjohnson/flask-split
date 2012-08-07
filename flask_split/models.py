@@ -199,6 +199,15 @@ class Experiment(object):
         return sum(a.completed_count for a in self.alternatives)
 
     @property
+    def total_conversion_rate(self):
+        """The conversion rate for the whole experiment."""
+        if self.total_participants == 0:
+            return 0
+        return float(self.total_completed) / float(self.total_participants)
+
+
+
+    @property
     def alternative_names(self):
         """A list of alternative names. in this experiment."""
         return [alternative.name for alternative in self.alternatives]

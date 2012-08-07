@@ -32,7 +32,7 @@
         <td>{{ experiment.total_participants }}</td>
         <td>{{ experiment.total_participants - experiment.total_completed }}</td>
         <td>{{ experiment.total_completed }}</td>
-        <td>N/A</td>
+        <td>{{ experiment.total_conversion_rate|percentage }}</td>
         <td>N/A</td>
         <td>N/A</td>
       </tr>
