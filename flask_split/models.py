@@ -105,7 +105,7 @@ class Alternative(object):
         var_cr = cr * (1 - cr) / float(n)
         var_crc = crc * (1 - crc) / float(nc)
 
-        if var_cr + var_crc == 0:
+        if var_cr + var_crc <= 0:
             return None
 
         return mean / sqrt(var_cr + var_crc)
