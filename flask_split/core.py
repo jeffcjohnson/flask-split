@@ -128,18 +128,11 @@ def finished(experiment_name, reset=False):
         if alternative_name:
             if 'split_finished' not in session:
                 session['split_finished'] = set()
-                print "this is the first if"
             if experiment.key not in session['split_finished']:
-                print experiment.key
-                print session['split_finished']
                 alternative = Alternative(
                     redis, alternative_name, experiment_name, alternative_idx)
-                session['split_finished'].add(experiment.key)
-                session.modified = True
-                print "about to increment: %s:%s" % (experiment.name, alternative.name)
                 alternative.increment_completion()
             if reset:
-                print "reseting"
                 _get_session().pop(experiment.key, None)
                 _get_session().pop(experiment.key+'-idx', None)
                 try:
@@ -148,7 +141,6 @@ def finished(experiment_name, reset=False):
                     pass
                 session.modified = True
             else:
-                print "this is the last if"
                 session['split_finished'].add(experiment.key)
                 session.modified = True
     except ConnectionError:
