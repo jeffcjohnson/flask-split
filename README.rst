@@ -3,9 +3,9 @@ Flask-Split
 
 |build status|_
 
-.. |build status| image:: https://secure.travis-ci.org/jpvanhal/flask-split.png?branch=master
+.. |build status| image:: https://secure.travis-ci.org/mariorz/flask-split.png?branch=master
    :alt: Build Status
-.. _build status: http://travis-ci.org/jpvanhal/flask-split
+.. _build status: http://travis-ci.org/mariorz/flask-split
 
 Flask-Split is a Flask extension for `A/B testing`_ your web application. It
 is a port of Andrew Nesbitt's excellent `Split`_  A/B testing framework to
