@@ -273,7 +273,8 @@ class Experiment(object):
 
     @classmethod
     def all(cls, redis):
-        return [cls.find(redis, unicode(e, 'utf-8')) for e in redis.smembers('experiments')]
+        exps = [cls.find(redis, unicode(e, 'utf-8')) for e in redis.smembers('experiments')]
+        return sorted(exps, key=lambda x: x.name)
 
     @classmethod
     def find(cls, redis, name):

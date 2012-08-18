@@ -107,7 +107,7 @@ def ab_test(experiment_name, *alternatives):
         return control[0] if isinstance(control, tuple) else control
 
 
-def finished(experiment_name, reset=False):
+def finished(experiment_name, reset=True):
     """
     Track a conversion.
 
