@@ -168,8 +168,7 @@ class Experiment(object):
     def start_time(self):
         """The start time of this experiment."""
         t = self.redis.hget('experiment_start_times', self.name)
-        if t:
-            return datetime.strptime(t, '%Y-%m-%dT%H:%M:%S')
+        return datetime.strptime(t, '%Y-%m-%dT%H:%M:%S') if t else datetime.now()
 
     @property
     def total_participants(self):
