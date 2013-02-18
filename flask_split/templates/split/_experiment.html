@@ -64,7 +64,7 @@
             {% endif %}
           </td>
           <td>
-            <span rel="tooltip" title="{% if alternative.z_score is not none %}z-score: {{ alternative.z_score|round(3) }}{% endif %}">
+            <span rel="tooltip" title="{% if alternative.z_score %}z-score: {{ alternative.z_score|round(3) }}{% endif %}">
               {{ alternative.confidence_level }}
             </span>
           </td>

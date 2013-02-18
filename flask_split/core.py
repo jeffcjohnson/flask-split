@@ -63,7 +63,7 @@ def init_app(state):
             return "%d%%" % round(number)
 
 
-def ab_test(experiment_name, *alternatives):
+def ab_test(experiment_name, experiment_group, *alternatives):
     """
     Start a new A/B test.
 
@@ -72,6 +72,8 @@ def ab_test(experiment_name, *alternatives):
 
     :param experiment_name: Name of the experiment.  You should never use the
         same experiment name to refer to a second experiment.
+    :param experiment_group: If the experiment is part of a group experiment that
+        might later be aggregated, the name of the group. Must be None otherwise.
     :param alternatives: A list of alternatives.  Each item can be either a
         string or a two-tuple of the form (alternative name, weight).  By
         default each alternative has the weight of 1.  The first alternative
@@ -80,7 +82,7 @@ def ab_test(experiment_name, *alternatives):
     redis = _get_redis_connection()
     try:
         experiment = Experiment.find_or_create(
-            redis, experiment_name, *alternatives)
+            redis, experiment_name, experiment_group, *alternatives)
         if experiment.winner:
             return experiment.winner.name
         else:

@@ -39,6 +39,16 @@ def index():
         experiments=Experiment.all(redis)
     )
 
+@split.route('/grouped')
+def grouped_experiments():
+    """Renders all active experiments grouping by alternative name."""
+    redis = _get_redis_connection()
+    experiments = Experiment.all(redis)
+    experiments.extend(Experiment.get_grouped_results(redis, experiments))
+
+    return render_template('split/index.html',
+        experiments=experiments
+    )
 
 @split.route('/<experiment>', methods=['POST'])
 def set_experiment_winner(experiment):

@@ -12,6 +12,7 @@
 from datetime import datetime
 from math import sqrt
 from random import random
+from collections import defaultdict
 
 
 class Alternative(object):
@@ -130,9 +131,12 @@ class Alternative(object):
 
 
 class Experiment(object):
-    def __init__(self, redis, name, *alternative_names):
+    def __init__(self, redis, name, group, *alternative_names):
         self.redis = redis
         self.name = name
+        self.group = group
+        if self.group:
+            redis.set(Experiment.group_name_redis_key(name), group)
         self.alternatives = [
             Alternative(redis, alternative, name)
             for alternative in alternative_names
@@ -237,6 +241,20 @@ class Experiment(object):
             for alternative in reversed(self.alternatives):
                 self.redis.lpush(self.name, alternative.name)
 
+    def find_or_create_alternative(self, alternative_name):
+        alternative = None
+        if not alternative_name in self.alternative_names:
+            alternative = Alternative(self.redis, alternative_name, self.name)
+            alternative._set_participant_count(0)
+            alternative._set_completed_count(0)
+            self.alternatives.append(alternative)
+        else:
+            for existing_alternative in self.alternatives:
+                if existing_alternative.name == alternative_name:
+                    alternative = existing_alternative
+                    break
+        return alternative
+
     @classmethod
     def load_alternatives_for(cls, redis, name):
         return [unicode(a, 'utf-8') for a in redis.lrange(name, 0, -1)]
@@ -248,10 +266,11 @@ class Experiment(object):
     @classmethod
     def find(cls, redis, name):
         if name in redis:
-            return cls(redis, name, *cls.load_alternatives_for(redis, name))
+            group = redis.get(cls.group_name_redis_key(name))
+            return cls(redis, name, group, *cls.load_alternatives_for(redis, name))
 
     @classmethod
-    def find_or_create(cls, redis, key, *alternatives):
+    def find_or_create(cls, redis, key, group, *alternatives):
         name = key.split(':')[0]
 
         if len(alternatives) < 2:
@@ -264,12 +283,33 @@ class Experiment(object):
                 experiment.reset()
                 for alternative in experiment.alternatives:
                     alternative.delete()
-                experiment = cls(redis, name, *alternatives)
+                experiment = cls(redis, name, group, *alternatives)
                 experiment.save()
         else:
-            experiment = cls(redis, name, *alternatives)
+            experiment = cls(redis, name, group, *alternatives)
             experiment.save()
         return experiment
+
+
+    @classmethod
+    def group_name_redis_key(cls, name):
+        return name + '_group' 
+
+
+    @classmethod
+    def get_grouped_results(cls, redis, experiments):
+        groups = defaultdict(lambda: None)
+        for experiment in experiments:
+            if experiment.group:
+                grouped_results = groups[experiment.group]
+                if not grouped_results:
+                    grouped_results = Experiment(redis, experiment.group + '_Totals', experiment.group)
+                    groups.update({ experiment.group :  grouped_results })
+                for alternative in experiment.alternatives:
+                    alternative_sum = grouped_results.find_or_create_alternative(alternative.name)
+                    alternative_sum._set_participant_count(alternative_sum._get_participant_count()+alternative._get_participant_count())
+                    alternative_sum._set_completed_count(alternative_sum._get_completed_count()+alternative._get_completed_count())
+        return groups.values()
 
     def _get_time(self):
         return datetime.now()
