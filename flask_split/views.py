@@ -44,6 +44,8 @@ def grouped_experiments():
     """Renders all active experiments grouping by alternative name."""
     redis = _get_redis_connection()
     experiments = Experiment.all(redis)
+    if request.args.get('excludeNonCompleted', False):
+        experiments = filter(lambda experiment: experiment.total_completed > 0, experiments)
     experiments.extend(Experiment.get_grouped_results(redis, experiments))
 
     return render_template('split/index.html',
