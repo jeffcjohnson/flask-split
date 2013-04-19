@@ -63,7 +63,7 @@ def init_app(state):
             return "%d%%" % round(number)
 
 
-def ab_test(experiment_name, experiment_group, *alternatives):
+def ab_test(experiment_name, experiment_group, always_increment_participant_count, *alternatives):
     """
     Start a new A/B test.
 
@@ -74,6 +74,10 @@ def ab_test(experiment_name, experiment_group, *alternatives):
         same experiment name to refer to a second experiment.
     :param experiment_group: If the experiment is part of a group experiment that
         might later be aggregated, the name of the group. Must be None otherwise.
+    :param always_increment_participant_count: If 'True', increment the participant
+        count every time this method is called. Useful for cases when there's a need 
+        to measure every impression of each alternative even if a user is already part 
+        of the experiment.
     :param alternatives: A list of alternatives.  Each item can be either a
         string or a two-tuple of the form (alternative name, weight).  By
         default each alternative has the weight of 1.  The first alternative
@@ -97,6 +101,8 @@ def ab_test(experiment_name, experiment_group, *alternatives):
 
             alternative_name = _get_session().get(experiment.key)
             if alternative_name:
+                if always_increment_participant_count:
+                    experiment.find_or_create_alternative(alternative_name).increment_participation()
                 return alternative_name
             alternative = experiment.next_alternative()
             alternative.increment_participation()
@@ -109,14 +115,17 @@ def ab_test(experiment_name, experiment_group, *alternatives):
         return control[0] if isinstance(control, tuple) else control
 
 
-def finished(experiment_name, reset=True):
+def finished(experiment_name, reset_choice=True, reset_finished_tracking=True):
     """
     Track a conversion.
 
     :param experiment_name: Name of the experiment.
-    :param reset: If set to `True` current user's session is reset so that they
-        may start the test again in the future.  If set to `False` the user
-        will always see the alternative they started with.  Defaults to `True`.
+    :param reset_choice: If set to `True` current user's chosen alternative is reset so that they
+        may start the test again in the future with a potentially different option.  
+        If set to `False` the user will always see the alternative they started with.  Defaults to `True`.
+    :param reset_finished_tracking: If set to `True`, once an experiment is completed, don't track subsequent
+        completions. This is generally the case, but sometimes you might need to keep presenting the original choice
+        (reset_choice=False) while continuing to track subsequent completions from the same user (reset_finished_tracking=True)
     """
     if _exclude_visitor():
         return
@@ -133,8 +142,9 @@ def finished(experiment_name, reset=True):
                 alternative = Alternative(
                     redis, alternative_name, experiment_name)
                 alternative.increment_completion()
-            if reset:
+            if reset_choice:
                 _get_session().pop(experiment.key, None)
+            if reset_finished_tracking:
                 try:
                     session['split_finished'].remove(experiment.key)
                 except KeyError:
